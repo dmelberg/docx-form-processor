@@ -2,6 +2,8 @@ import os
 import docx2txt
 import re
 
+######## PART I: GENERATING TEXT FILES ########
+
 #setting our source and text file directories
 source_directory = os.path.join(os.getcwd(), "source")
 text_directory = os.path.join(os.getcwd(), "text_files")
@@ -12,65 +14,64 @@ for process_file in os.listdir(source_directory):
         continue
 
     #saving filename and extension separately for use in loop
-    file, extension = os.path.splitext(process_file)
+    filename, extension = os.path.splitext(process_file)
 
     # We create a new text file name by concatenating the .txt extension to file
-    dest_file_path = file + '.txt'
+    dest_file_path = filename + '.txt'
 
     #extract text from the file
     try:
         content = docx2txt.process(os.path.join(source_directory, process_file))
     except Exception:
+        #catch file causing error and show me its name before moving on
         input(process_file)
+    
     # We create and open the new and we prepare to write the Binary Data which is represented by the wb - Write Binary
     write_text_file = open(os.path.join(text_directory, dest_file_path), "wb")
 
     #write the content and close the newly created file
     write_text_file.write(content)
     write_text_file.close()
-# ###pasa a csv
-with open('salida.csv','wb') as file:
-    file.write(bytes("Nombre; Apellido; Region; Telefono; Email; Institucion; Cargo\n".encode("utf8")))
+
+#future refactor: do both parts in single loop writing line by line in csv
+
+########## PART II: TEXT TO CSV ##########
+regex = {
+    "nombre": r'Nombre: (\S+)',
+    "apellido": r'Apellido: (\S+)',
+    "region": r'Región:[ ]+([A-zÀ-ú ]+)',
+    "tel": r'Tel Móvil \(Código de País - Código de Área - Número\):([0-9\s\-\+]+)',
+    "email": r'Email: (\S+)',
+    "titulo": r'Título Académico: [ ]+([A-zÀ-ú ]+)',
+    "institucion": r'Lugar de trabajo\/ Institución:[ ]+([A-zÀ-ú ]+)',
+    "cargo": r'Cargo actual: (\S+)'
+}
+
+def get_match(field, line):
+    """
+    Get regex matches from list above in text files
+    """
+    match = re.search(field, line)
+    if match:
+        return match.group(1)
+
+with open('formdata.csv','wb') as csvfile:
+    #set csv headers
+    csvfile.write(bytes("Nombre; Apellido; Region; Telefono; Email; Institucion; Cargo\n".encode("utf8")))
+    #loop over textfiles
     for textfile in os.listdir(os.path.join("text_files")):
+        #osx workaround
         if textfile == ".DS_Store":
             continue
-        with open(os.path.join("text_files",textfile), "r", encoding = "utf8") as archo:
-            texto = []
+        with open(os.path.join("text_files",textfile), "r", encoding = "utf8") as tfile:
+            items = []
+            #trying to fill as much as possible
             try:
-                for linea in archo:
-                    mat = 0
-                    match = re.search(r'Nombre: (\S+)', linea)
-                    if match:
-                        nombre = match.group(1)
-                    match1 = re.search(r'Apellido: (\S+)', linea)
-                    if match1:
-                        apellido = match1.group(1)
-                    match2 = re.search(r'Región:[ ]+([A-zÀ-ú ]+)', linea)
-                    if match2:
-                        region = match2.group(1)
-                    match3 = re.search(r'Tel Móvil \(Código de País - Código de Área - Número\):([0-9\s\-\+]+)', linea)
-                    if match3:
-                        tel = match3.group(1).strip()
-                    mat += 1
-                    match4 = re.search(r'Email: (\S+)', linea)
-                    if match4:
-                        mail = match4.group(1)
-                    match5 = re.search(r'Título Académico: [ ]+([A-zÀ-ú ]+)', linea)
-                    # if match5:
-                    #     titulo = match5.group(1)
-                    # else:
-                    #     titulo = ""
-                    match6 = re.search(r'Lugar de trabajo\/ Institución:[ ]+([A-zÀ-ú ]+)', linea)
-                    if match6:
-                        institucion = match6.group(1)
-                    match7 = re.search(r'Cargo actual: (\S+)', linea)
-                    if match7:
-                        cargo = match7.group(1)
+                for line in tfile:
+                    for key in regex:
+                        items.append(get_match(regex[key], line))
             except Exception:
                 input(textfile)
-            if mat == 0:
-                tel = ""
-            row = ";".join([nombre,apellido,region,tel,mail,institucion,cargo, "\n"])
-            # rowb = bytes(row, encoding = "utf-8")
-            file.write(row.encode('utf8'))
-            # file.write('\n')
+            items.append("\n")
+            row = ";".join(items)
+            csvfile.write(row.encode('utf8'))
