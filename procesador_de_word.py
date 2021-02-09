@@ -1,7 +1,6 @@
 import os
 import docx2txt
 import re
-import uuid
 
 #setting our source and text file directories
 source_directory = os.path.join(os.getcwd(), "source")
@@ -15,7 +14,7 @@ for process_file in os.listdir(source_directory):
     #saving filename and extension separately for use in loop
     file, extension = os.path.splitext(process_file)
 
-    # We create a new text file name by concatenating the .txt extension to file UUID
+    # We create a new text file name by concatenating the .txt extension to file
     dest_file_path = file + '.txt'
 
     #extract text from the file
@@ -39,15 +38,6 @@ with open('salida.csv','wb') as file:
             texto = []
             try:
                 for linea in archo:
-                    # nombre = ""
-                    # apellido = ""
-                    # region = ""
-                    # tel = ""
-                    # mail = ""
-                    # titulo = ""
-                    # institucion = ""
-                    # cargo = ""
-                    # Capture one-or-more characters of non-whitespace after the initial match
                     mat = 0
                     match = re.search(r'Nombre: (\S+)', linea)
                     if match:
