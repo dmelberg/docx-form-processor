@@ -13,7 +13,7 @@ Python script that converts .docx individually typed forms in spanish to .csv ta
 * "Cargo actual" 
 
 ## Before running
-Install (docx2txt)[https://github.com/ankushshah89/python-docx2txt] via command line:
+Install [docx2txt](https://github.com/ankushshah89/python-docx2txt) via command line:
 ```
 pip install docx2txt
 ```
