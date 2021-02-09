@@ -27,7 +27,7 @@ for process_file in os.listdir(source_directory):
         input(process_file)
     
     # We create and open the new and we prepare to write the Binary Data which is represented by the wb - Write Binary
-    write_text_file = open(os.path.join(text_directory, dest_file_path), "wb")
+    write_text_file = open(os.path.join(text_directory, dest_file_path), "w")
 
     #write the content and close the newly created file
     write_text_file.write(content)
@@ -69,9 +69,13 @@ with open('formdata.csv','wb') as csvfile:
             try:
                 for line in tfile:
                     for key in regex:
-                        items.append(get_match(regex[key], line))
+                        match = get_match(regex[key], line)
+                        if match:
+                            items.append(match)
             except Exception:
                 input(textfile)
             items.append("\n")
-            row = ";".join(items)
+            unnull_items = ['' if item is None else item for item in items]
+            clean_items = [item.strip() if item[-1].isdigit() else item for item in unnull_items]
+            row = ";".join(clean_items)
             csvfile.write(row.encode('utf8'))
